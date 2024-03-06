@@ -47,11 +47,11 @@ void EventGenerator::streamProcess(const int channel){
         
         //print when started generating messages
         if (epoch == 0){
-            time_t start;
+            /*time_t start;
             time(&start);
             cout << "Time start : " << fixed
                      << double(start);
-                cout << " sec " << endl;
+                cout << " sec " << endl;*/
         }
 
         while(ALIVE){
@@ -91,13 +91,7 @@ int EventGenerator::addToBatch(Mini_Batch_Generator &micro_batch, std::ifstream 
         
         infile.read(label, 1); // read label as char
         infile.read(img, 32*32*3); // read img as char*
-        
-        //convert label from char(1 byte) to int(4 bytes)
-        int label_int = (int)label[0];
-        //copy int(4 bytes) as char* (4bytes) to mini_batch
-        std::copy(static_cast<const char*>(static_cast<const void*>(&label_int)),
-                  static_cast<const char*>(static_cast<const void*>(&label_int)) + sizeof(int), &micro_batch.inputs[0][position*sizeof(int)]);
-        
+
         //convert img from char* (1 byte per pixel) to float* (4 bytes per pixel)
         float img_float[32*32*3];
         //copy float* (4 bytes per pixel) as char* (4 bytes per pixel) to mini_batch
@@ -106,7 +100,15 @@ int EventGenerator::addToBatch(Mini_Batch_Generator &micro_batch, std::ifstream 
         }
         
         std::copy(static_cast<const char*>(static_cast<const void*>(img_float)),
-                  static_cast<const char*>(static_cast<const void*>(img_float)) + sizeof(float)*32*32*3, &micro_batch.inputs[1][32*32*3*position*sizeof(float)]);
+                  static_cast<const char*>(static_cast<const void*>(img_float)) + sizeof(float)*32*32*3, &micro_batch.inputs[0][32*32*3*position*sizeof(float)]);
+        
+        
+        //convert label from char(1 byte) to int(4 bytes)
+        int label_int = (int)label[0];
+        //copy int(4 bytes) as char* (4bytes) to mini_batch
+        std::copy(static_cast<const char*>(static_cast<const void*>(&label_int)),
+                  static_cast<const char*>(static_cast<const void*>(&label_int)) + sizeof(int), &micro_batch.inputs[1][position*sizeof(int)]);
+        
         
         //Check if the micro_batch was read successfully. If it was not succesfully is because the file ended (thus we finished the current epoch)
         if(!infile){
@@ -139,11 +141,11 @@ vector<output_data> EventGenerator::generateMessages(const unsigned int quantity
     ubatch.mini_batch_size=mini_batch_size;
     ubatch.num_inputs = 2;
     ubatch.size_inputs = (size_t*) malloc(sizeof(size_t)*2); 
-    ubatch.size_inputs[0] = sizeof(int)*mini_batch_size; //labels size
-    ubatch.size_inputs[1] = sizeof(float)*mini_batch_size*32*32*3; //imgs size
+    ubatch.size_inputs[0] = sizeof(float)*mini_batch_size*32*32*3; //imgs size
+    ubatch.size_inputs[1] = sizeof(int)*mini_batch_size; //labels size
     ubatch.inputs = (char**) malloc(sizeof(char*)*2);
-    ubatch.inputs[0] = (char*) malloc(ubatch.size_inputs[0]); //labels
-    ubatch.inputs[1] = (char*) malloc(ubatch.size_inputs[1]); //imgs
+    ubatch.inputs[0] = (char*) malloc(ubatch.size_inputs[0]); //imgs
+    ubatch.inputs[1] = (char*) malloc(ubatch.size_inputs[1]); //labels
     
     
     //fill ubatch
@@ -173,8 +175,8 @@ vector<output_data> EventGenerator::generateMessages(const unsigned int quantity
     Serialization::wrap<int>(ubatch.mini_batch_size, message.get());
     Serialization::wrap<int>(ubatch.num_inputs, message.get());
     Serialization::dynamic_event_wrap<size_t>(ubatch.size_inputs[0], message.get(), sizeof(size_t) * ubatch.num_inputs);
-    Serialization::dynamic_event_wrap<char>(ubatch.inputs[0][0], message.get(), ubatch.size_inputs[0]); //labels
-    Serialization::dynamic_event_wrap<char>(ubatch.inputs[1][0], message.get(), ubatch.size_inputs[1]); //imgs
+    Serialization::dynamic_event_wrap<char>(ubatch.inputs[0][0], message.get(), ubatch.size_inputs[0]); //imgs
+    Serialization::dynamic_event_wrap<char>(ubatch.inputs[1][0], message.get(), ubatch.size_inputs[1]); //labels
 
     //define to which TensAIR model to send the message
     inference_rank = msg_count % worldSize;

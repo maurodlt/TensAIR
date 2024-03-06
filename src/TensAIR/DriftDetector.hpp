@@ -1,3 +1,6 @@
+//IMPLEMENTATION OF OPTWIN DRIFT DETECTOR
+//https://github.com/maurodlt/OPTWIN
+
 #pragma once
 #include "../dataflow/BasicVertex.hpp"
 #include "../communication/Message.hpp"
@@ -10,7 +13,7 @@ namespace drift_detector {
 class DriftDetector: public BasicVertex<> {
 
 public:
-    DriftDetector(const int tag, const int rank, const int worldSize, int windowSize = sizeof(int) + sizeof(float), int max_widowLoss = 1000, string file_cuts = "/Users/mauro.dalleluccatosi/Documents/OPTWIN/jupyter/data/opt_cut_updated_30-25000_0.01_0.5r.csv", MPI_Comm comm = MPI_COMM_WORLD);
+    DriftDetector(const int tag, const int rank, const int worldSize, int windowSize = sizeof(int) + sizeof(float), int max_widowLoss = 1000, string file_cuts = "", MPI_Comm comm = MPI_COMM_WORLD);
 
     ///Main method that manages the Drift Detector dataflow
 	void streamProcess(const int channel);

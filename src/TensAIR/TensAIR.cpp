@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <fstream>
 #include <cstdlib>
+#include <iostream>
 
 /**
  * Default Constructor
@@ -46,10 +47,13 @@ BasicVertex<>(tag, rank, worldSize, windowSize, comm) {
     dest_broadcast.erase(dest_broadcast.begin() + rank); //remove current rank
 
     //Open file to print results (one file per rank)
-    if(print_to_folder.empty() == false){
-        this->print_to_file = print_to_folder + to_string(rank) + ".csv";
-        file_to_print = std::ofstream(print_to_file);
+    if (print_to_folder.empty()){
+        char* path_value = std::getenv("TENSAIR_PATH");
+        print_to_folder =  std::string(path_value) + "/output/";
     }
+    this->print_to_file = print_to_folder + to_string(rank) + ".csv";
+    file_to_print = std::ofstream(print_to_file);
+
 
     //Define which GPU each operator must use
     if (gpus_per_node > 0){
@@ -78,15 +82,18 @@ BasicVertex<>(tag, rank, worldSize, windowSize, comm) {
     load_tensors(saved_model_dir, tags);
     
 
-    //pre-allocate input tensors
-    if (preallocate_tensors){
-        if (mini_batch_size > 0){
+    //pre-allocate input tensors that depend on the mini_batch_size
+    if (this->preallocate_tensors){
+        if (this->mini_batch_size > 0){
             pre_allocate_tensors(mini_batch_size);
         }else{
-            preallocate_tensors = false;
+            this->preallocate_tensors = false;
             cout << "In order to pre-allocate tensors, it is necessary to define the mini_batch_size. \n Pre-allocation disabled!" <<endl;
         }
     }
+
+    //pre-allocate input tensors that do not depend on the mini_batch_size
+    pre_allocate_base_tensors();
     
     //init models_version
     this->models_version = (unsigned long int*) malloc(sizeof(unsigned long int) * worldSize);
@@ -319,14 +326,13 @@ void TensAIR::load_tensors(const char *saved_model_dir, const char* tags){
     retrieve_delta_output = (char*)malloc(sizeof(char)*(tens_out.length()+1));
     strcpy(retrieve_delta_output, tens_out.c_str());
     
-    cout << "\nTensors loaded Successfully!" << endl;
+    cout << "Tensors loaded Successfully!" << endl;
     
     return;
 }
 
-// preallocate input tensors
-void TensAIR::pre_allocate_tensors(int mini_batch_size){
-    
+
+void TensAIR::pre_allocate_base_tensors(){
     ///////apply gradient
     pair<vector<TF_Output>, vector<TF_Tensor*>> result = allocateTensor(mini_batch_size, apply_gradient_input, apply_gradient_input_dims, apply_gradient_input_dt);
     app_inp_op = result.first;
@@ -340,9 +346,9 @@ void TensAIR::pre_allocate_tensors(int mini_batch_size){
         inp_app_operators[i] = app_inp_op[i];
         inp_app_values[i] = app_inp_tensors[i];
     }
-    
+
     ///////clear delta
-    result = allocateTensor(mini_batch_size, clear_delta_input, clear_delta_input_dims, clear_delta_input_dt);
+    result = allocateTensor(1, clear_delta_input, clear_delta_input_dims, clear_delta_input_dt);
     clear_delta_inp_op = result.first;
     clear_delta_inp_tensors = result.second;
     n_clear_delta_inp = (int)clear_delta_input_dims.size();
@@ -354,9 +360,27 @@ void TensAIR::pre_allocate_tensors(int mini_batch_size){
         clear_delta_operators[i] = clear_delta_inp_op[i];
         clear_delta_values[i] = clear_delta_inp_tensors[i];
     }
-    
+
+     ///////retrieve_delta
+    result = allocateTensor(1, retrieve_delta_input, retrieve_delta_input_dims, retrieve_delta_input_dt);
+    retrieve_delta_inp_op = result.first;
+    retrieve_delta_inp_tensors = result.second;
+    n_retrieve_delta_inp = (int)retrieve_delta_input_dims.size();
+    //parse to pointers instead of vecotrs
+    retrieve_delta_operators = (TF_Output*) malloc(sizeof(TF_Output)*n_retrieve_delta_inp);
+    retrieve_delta_values = (TF_Tensor**) malloc(sizeof(TF_Tensor*)*n_retrieve_delta_inp);
+    //copy pointers (not necessary to copy the data)
+    for (int i = 0; i < n_retrieve_delta_inp; i ++){
+        retrieve_delta_operators[i] = retrieve_delta_inp_op[i];
+        retrieve_delta_values[i] = retrieve_delta_inp_tensors[i];
+    }
+}
+
+// preallocate input tensors
+void TensAIR::pre_allocate_tensors(int mini_batch_size){
+
     ///////train_step
-    result = allocateTensor(mini_batch_size, train_step_input, train_step_input_dims, train_step_input_dt);
+    pair<vector<TF_Output>, vector<TF_Tensor*>> result = allocateTensor(mini_batch_size, train_step_input, train_step_input_dims, train_step_input_dt);
     train_step_inp_op = result.first;
     train_step_inp_tensors = result.second;
     n_train_step_inp = (int)train_step_input_dims.size();
@@ -368,19 +392,19 @@ void TensAIR::pre_allocate_tensors(int mini_batch_size){
         train_step_operators[i] = train_step_inp_op[i];
         train_step_values[i] = train_step_inp_tensors[i];
     }
-    
-    ///////retrieve_delta
-    result = allocateTensor(mini_batch_size, retrieve_delta_input, retrieve_delta_input_dims, retrieve_delta_input_dt);
-    retrieve_delta_inp_op = result.first;
-    retrieve_delta_inp_tensors = result.second;
-    n_retrieve_delta_inp = (int)retrieve_delta_input_dims.size();
+
+    ///////predict
+    result = allocateTensor(1, predict_input, predict_input_dims, predict_input_dt);
+    predict_inp_op = result.first;
+    predict_inp_tensors = result.second;
+    n_predict_inp = (int)predict_input_dims.size();
     //parse to pointers instead of vecotrs
-    retrieve_delta_operators = (TF_Output*) malloc(sizeof(TF_Output)*n_retrieve_delta_inp);
-    retrieve_delta_values = (TF_Tensor**) malloc(sizeof(TF_Tensor*)*n_retrieve_delta_inp);
+    predict_operators = (TF_Output*) malloc(sizeof(TF_Output)*n_predict_inp);
+    predict_values = (TF_Tensor**) malloc(sizeof(TF_Tensor*)*n_predict_inp);
     //copy pointers (not necessary to copy the data)
-    for (int i = 0; i < n_retrieve_delta_inp; i ++){
-        retrieve_delta_operators[i] = retrieve_delta_inp_op[i];
-        retrieve_delta_values[i] = retrieve_delta_inp_tensors[i];
+    for (int i = 0; i < n_predict_inp; i ++){
+        predict_operators[i] = predict_inp_op[i];
+        predict_values[i] = predict_inp_tensors[i];
     }
 }
 
@@ -474,6 +498,8 @@ void TensAIR::streamProcess(int channel) {
         //      channel < worldSize -> messages received from EventGenerator
         //      worldSize < channel < 2*worldSize -> messages received from other Model
         //      2*worldSize >= channel -> messages received from other Drift Detector
+
+        time(&start);
 
         if(channel < this->worldSize){ //messages receved from Event Generator. (calculate gradient or prediction)
             list<message_ptr> pthread_waiting_lists;
@@ -940,30 +966,32 @@ vector<output_data> TensAIR::predict(message_ptr message){
     count_predictions++;
     //deserialize message to Mini_Batch
     Mini_Batch mbatch = read_MiniBatch(std::move(message)); 
+
     //calculate gradient
     vector<TF_Tensor*> out_tensors = run_tf_function(mbatch.inputs, mbatch.mini_batch_size, predict_input, predict_output, predict_input_dims, predict_output_dims, predict_input_dt, predict_output_dt);
-    
     float loss = static_cast<float*>(TF_TensorData(out_tensors[0]))[0];
     float prediction = static_cast<float*>(TF_TensorData(out_tensors[1]))[0];
-    
+
+    //serialize gradients to message
+    message_ptr message_out_loss = construct_Message_Tensors_Loss(out_tensors, num_output_metrics);
+
     // check if results should be printed to file
     if(print_to_file.empty() == false && count_predictions % print_frequency == 0){
         file_to_print << "predicting, " << count_predictions << "," << loss << "," << prediction << std::endl;
     }
 
-    //serialize gradients to message
-    message_ptr message_out_loss = construct_Message_Tensors_Loss(out_tensors, num_output_metrics);
+    //free data
+    for(int i = 0; i < out_tensors.size(); i++){
+        TF_DeleteTensor(out_tensors[i]);
+    }
     
-   
+    
+
     // add message to output
     destination dest2 = vector<int>({drift_identifier_ranks});
     vector<output_data> res;
     res.push_back(make_pair(std::move(message_out_loss), dest2));
 
-    //free data
-    for(int i = 0; i < out_tensors.size(); i++){
-        TF_DeleteTensor(out_tensors[i]);
-    }
     free(mbatch.size_inputs);
     for(int i = 0; i < mbatch.num_inputs; i++)
         free(mbatch.inputs[i]);
@@ -1175,7 +1203,7 @@ void TensAIR::evaluate(vector<Mini_Batch> eval_batches){
 }
 
 //prints training metrics obtained during current epoch and runs model evaluation
-bool TensAIR::end_of_epoch(int new_model_version, int old_model_version){
+bool TensAIR::end_of_epoch(){
     bool converged = false;
     if (std::find(std::begin(ranks_to_print), std::end(ranks_to_print), rank) == std::end(ranks_to_print)){ // if this rank does not print (only check convergence)
         epoch++;
@@ -1183,11 +1211,13 @@ bool TensAIR::end_of_epoch(int new_model_version, int old_model_version){
         converged = model_convergence(this->convergence_factor, this->epochs_for_convergence);
         
         for(int i = 0; i < num_output_metrics; i++){
-            float avg_metric = metrics_epoch_values[i]/metrics_epochs_count[i];
-            std::cout << ", "<< metric_names[i] << ":" << avg_metric;
+            //float avg_metric = metrics_epoch_values[i]/metrics_epochs_count[i];
+            //std::cout << ", "<< metric_names[i] << ":" << avg_metric;
             metrics_epoch_values[i] = 0;
             metrics_epochs_count[i] = 0;
         }
+
+        //std::cout << endl;
 
         return converged;
     }
@@ -1196,11 +1226,13 @@ bool TensAIR::end_of_epoch(int new_model_version, int old_model_version){
     std::cout << std::endl;
     time_t end;
     time(&end);
+
     
-    cout << "Time end epoch "  << epoch << ": " << fixed
-                << end;
+    cout << "Epoch: "  << epoch << "   - Time: " << fixed
+                << (end-start);
         cout << " sec " << endl;
     epoch++;
+    time(&start);
     
     std::cout<< "Rank:" << rank;
     past_metrics.push_back(metrics_epoch_values);
@@ -1212,9 +1244,12 @@ bool TensAIR::end_of_epoch(int new_model_version, int old_model_version){
         metrics_epoch_values[i] = 0;
         metrics_epochs_count[i] = 0;
     }
+
+    cout << endl;
+    cout << endl;
     
     evaluate(evaluation_batches);
-    if(new_model_version / epoch_size == this->epochs){
+    if(gradientsApplied / epoch_size == this->epochs){
             MPI_Abort(COMM_WORLD, 1);
     }
     return converged;
@@ -1222,9 +1257,25 @@ bool TensAIR::end_of_epoch(int new_model_version, int old_model_version){
 }
 
 //based on the current model version, prints progress_bar during training
-void TensAIR::progress_bar(int epoch, int new_model_version){
-    float new_progress = (float)new_model_version / epoch_size;
+void TensAIR::progress_bar(bool new_epoch){
+    int barWidth = 70;
+
+    if (new_epoch){
+        std::cout << "[";
+        int pos = barWidth;
+        for (int i = 0; i < barWidth; ++i) {
+            if (i < pos) std::cout << "=";
+            else if (i == pos) std::cout << ">";
+            else std::cout << " ";
+        }
+        std::cout << "] " <<  epoch_size*(epoch+1) << "  -  " << 100 << " %\r";
+        std::cout.flush();
+        return;
+    }
+
+    float new_progress = (float)gradientsApplied / epoch_size;
     
+
     //update progress every 5%
     //if((int)(new_progress*100)%5 != 0 || new_progress - 0.05 <= progress){
     if(new_progress - 0.05 < progress){
@@ -1233,7 +1284,6 @@ void TensAIR::progress_bar(int epoch, int new_model_version){
     progress = new_progress;
     
     float percentageCompleted = progress - epoch;
-    int barWidth = 70;
 
     std::cout << "[";
     int pos = barWidth * percentageCompleted;
@@ -1242,7 +1292,7 @@ void TensAIR::progress_bar(int epoch, int new_model_version){
         else if (i == pos) std::cout << ">";
         else std::cout << " ";
     }
-    std::cout << "] " << new_model_version << "  -  " << int(percentageCompleted * 100.0) << " %\r";
+    std::cout << "] " << gradientsApplied << "  -  " << int(percentageCompleted * 100.0) << " %\r";
     std::cout.flush();
 }
 
@@ -1540,7 +1590,7 @@ void TensAIR::clear_delta(){
         tar_values[i] = clear_delta_out_tensors[i];
     }
     
-    //cclear delta
+    //clear delta
     TF_SessionRun(session, nullptr,
                 clear_delta_operators, clear_delta_values, n_clear_delta_inp,
                 tar_operators, tar_values, n_clear_delta_out,
@@ -1592,14 +1642,16 @@ pair<bool,bool> TensAIR::after_gradient_application(float** metrics_data, int n_
     unsigned long int old_model_version = this->models_version[this->rank] - broadcast_frequency;
     
     bool converged = false;
+
     //if end of epoch and current rank is in "ranks_to_print", print progress_bar
     if (floor(former_update / epoch_size)  < floor(gradientsApplied / epoch_size)){
-        converged = end_of_epoch((int)new_model_version, (int)old_model_version);
+        progress_bar(true);
+        converged = end_of_epoch();
     }
-    
+
     //if current rank is in "ranks_to_print", print progress_bar
     if(std::find(std::begin(ranks_to_print), std::end(ranks_to_print), rank) != std::end(ranks_to_print)){
-        progress_bar(epoch, (int)new_model_version);
+        progress_bar(false);
     }
     
     bool end_training = false;

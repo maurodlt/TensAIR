@@ -27,7 +27,7 @@ PYBIND_LOCATION=$(pip3 show pybind11 | grep "Location" | cut -d' ' -f2)
 # Append "/mpi4py/include" to the location
 DEFAULT_PYBIND_INCLUDE_PATH="${PYBIND_LOCATION}/pybind11/include"
 # Ask the user if they want to use the default path
-echo "Detected mpi4py include path: ${DEFAULT_PYBIND_INCLUDE_PATH}"
+echo "Detected pybind11 include path: ${DEFAULT_PYBIND_INCLUDE_PATH}"
 read -p "Do you want to use this path? [Y/n]: " USE_DEFAULT
 
 if [[ $USE_DEFAULT =~ ^[Yy]$ ]] || [[ -z $USE_DEFAULT ]]; then
@@ -66,7 +66,7 @@ done
 
 if [ -z "$FOUND_PATH" ]; then
     # User cmanually sets a path as a default one was not located
-    read -p "libtensorflow could not be located. You probably forot to include it into the LIBRARY_PATH. Enter the path to libtensorflow manually (eg. /opt/libtensorflow): " USER_SPECIFIED_PATH
+    read -p "libtensorflow could not be located. You probably forgot to include it into the LIBRARY_PATH. Enter the path to libtensorflow manually (eg. /opt/libtensorflow): " USER_SPECIFIED_PATH
     LIBTENSORFLOW_PATH="${USER_SPECIFIED_PATH}"
 
 else
@@ -87,5 +87,11 @@ export LIBTENSORFLOW_LIB_DIR="${LIBTENSORFLOW_PATH}"
 export LIBTENSORFLOW_INCLUDE_DIR="${LIBTENSORFLOW_PATH%????}/include"
 
 
-
+#Export TensAIR location
+LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/lib" && pwd)"
+INCLUDE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/include" && pwd)"
+TensAIR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)" 
+export PYTHONPATH="${LIB_DIR}:${PYTHONPATH}"
+export PYTHONPATH="${INCLUDE_DIR}:${PYTHONPATH}"
+export TENSAIR_PATH="${TensAIR_DIR}"
 

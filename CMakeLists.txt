@@ -132,8 +132,6 @@ set(LIST_FILES
         src/usecases/StreamingTest.hpp
         src/usecases/WordEmbedding.hpp
         src/usecases/WordEmbedding.cpp
-        src/usecases/Hessian_W2V.hpp
-        src/usecases/Hessian_W2V.cpp
         src/usecases/Cifar.hpp
         src/usecases/Cifar.cpp
         src/usecases/Demo.hpp
@@ -142,10 +140,6 @@ set(LIST_FILES
         src/word_embedding/EventGenerator.cpp
         src/cifar/EventGenerator.hpp
         src/cifar/EventGenerator.cpp
-        src/hessian_w2v/EventGenerator.hpp
-        src/hessian_w2v/EventGenerator.cpp
-        src/hessian_w2v/Model.hpp
-        src/hessian_w2v/Model.cpp
         src/demo/EventGenerator.hpp
         src/demo/EventGenerator.cpp
 )
@@ -154,6 +148,11 @@ set(LIST_FILES
 add_executable(tensair_py.so ${LIST_FILES} src/TensAIR/Python_Interface.cpp src/TensAIR/EventGenerator.cpp src/usecases/Demo.cpp)
 target_compile_definitions(tensair_py.so PRIVATE SAVED_MODEL_CLI_PATH="${SAVED_MODEL_CLI_EXECUTABLE}")
 target_link_libraries(tensair_py.so ${MPI_LIBRARIES}) 
+# Set the output directory for tensair_py.so
+set_target_properties(tensair_py.so PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib"
+)
 if(APPLE)
     target_compile_options(tensair_py.so PRIVATE -shared -fPIC -pthread -undefined dynamic_lookup)
     target_link_options(tensair_py.so PRIVATE -shared -fPIC -pthread -undefined dynamic_lookup)
@@ -171,7 +170,19 @@ add_executable(TensAIR ${LIST_FILES})
 target_compile_definitions(TensAIR PRIVATE SAVED_MODEL_CLI_PATH="${SAVED_MODEL_CLI_EXECUTABLE}")
 target_link_libraries(TensAIR ${MPI_LIBRARIES})
 target_link_libraries(TensAIR ${Python_LIBRARIES})
+# Set the output directory for tensair_py.so
+set_target_properties(TensAIR PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib"
+)
 target_compile_options(TensAIR PRIVATE -pthread)
 target_link_options(TensAIR PRIVATE -pthread)
 target_link_libraries(TensAIR "-ltensorflow")
 target_link_libraries(TensAIR tensorflow)
+
+# Compute the absolute path to the desired directory
+get_filename_component(PARENT_DIR ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
+set(LIB_DIR "${PARENT_DIR}/lib")
+
+# Prepend the computed directory to PYTHONPATH for processes launched by CMake
+set(ENV{PYTHONPATH} "${LIB_DIR}:$ENV{PYTHONPATH}")

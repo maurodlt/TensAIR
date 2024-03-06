@@ -39,9 +39,8 @@ public:
      * worldSize is the total number of ranks on MPI
      * mini_batch_size is the size of the mini_batches generated
      * msg_sec is the throughput (number of messages processed before waiting 1sec to resume)
-     * epochs is 1/2 THE NUMBER OF EPOCHS GENERATED here. epochs = the number of epochs used for training in TensAIR
-     * train_data_file is the file with the training data . Format: (target context1 context2 context3 context4  context5 label1 label2 label3 label4 label5)
      * windowSize is the maximum message size received, default is 1MB
+     * init_code_file which defines method next_message(mini_batch_size)
      * comm is the MPI object received when using the Python Interface
      * 
      */
@@ -63,17 +62,11 @@ protected:
     
     int mini_batch_size; ///mini batch size
     int msg_sec; ///messages throughput
-    int epochs; ///number of epochs processed  by TensAIR
-    int epochs_generate; ///number of epochs to generate
     int starting_second = (int)MPI_Wtime(); ///time when we start to generate messages
     int inference_rank = 0; ///rank that will receive Mini batch
     vector<output_data> res; /// object that stores message and recipient
     long long int msg_count = 0; ///total number of messages generated
-    int epoch = 0; ///current epoch
-    string train_data_file;
-    //const char* train_data_file = "../data/CIFAR/data_batch_1.bin";
     unsigned int event_generator_rank = 0; ///rank that will ran the EventGenerator
-    std::ofstream outFile;
     std::string init_code_file="";
 };
 };

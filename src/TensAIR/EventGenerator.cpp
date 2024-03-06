@@ -27,9 +27,8 @@ namespace py = pybind11;
  * worldSize is the total number of ranks on MPI
  * mini_batch_size is the size of the mini_batches generated
  * msg_sec is the throughput (number of messages processed before waiting 1sec to resume)
- * epochs is 1/2 THE NUMBER OF EPOCHS GENERATED here. epochs = the number of epochs used for training in TensAIR
- * train_data_file is the file with the training data . Format: (target context1 context2 context3 context4  context5 label1 label2 label3 label4 label5)
  * windowSize is the maximum message size received, default is 1MB
+ * init_code_file which defines method next_message(mini_batch_size)
  * comm is the MPI object received when using the Python Interface
  * 
  */
@@ -37,8 +36,6 @@ EventGenerator::EventGenerator(const int tag, const int rank, int worldSize, int
 BasicVertex<>(tag, rank, worldSize, windowSize, comm){
     this->mini_batch_size = mini_batch_size;
     this->msg_sec = msg_sec;
-
-    outFile.open("/Users/mauro.dalleluccatosi/Documents/GitHub/TensAIR/output/out.txt");
 
     if (rank == EventGenerator::event_generator_rank){
         this->init_code_file = init_code_file;
@@ -102,12 +99,10 @@ vector<output_data> EventGenerator::generateMessages(){
     // serialize message
     Serialization::dynamic_event_wrap<char>(msg_content[0], message.get(), message_size); //imgs
 
-
     //define to which TensAIR model to send the message
     inference_rank = msg_count % worldSize;
     msg_count++;
     destination dest = vector<int>({inference_rank});
-    outFile << inference_rank << endl;
     
     vector<output_data> res;
     res.push_back(make_pair(move(message), dest));

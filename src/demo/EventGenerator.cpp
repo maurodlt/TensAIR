@@ -35,8 +35,6 @@ BasicVertex<>(tag, rank, worldSize, windowSize, comm){
     this->epochs_generate = epochs*2;
     this->train_data_file = string(train_data_file);
 
-    outFile.open("/Users/mauro.dalleluccatosi/Documents/GitHub/TensAIR/output/out-event-generator.txt");
-
     this->drift_frequency = drift_frequency;
     this->conceptDrifts = {
         {make_pair(10,10)},  // Null pair (no drift)
@@ -70,7 +68,6 @@ void EventGenerator::streamProcess(const int channel){
             
             vector<output_data> out = generateMessages(this->mini_batch_size, infile);
             if(!out.empty()){
-                //outFile << count2 << ", " << out[0].second[0] << endl;
                 send(std::move(out)); //send message to TensAIR
             }
             
@@ -105,6 +102,16 @@ int EventGenerator::addToBatch(Mini_Batch_Generator &micro_batch, std::ifstream 
         
         infile.read(label, 1); // read label as char
         infile.read(img, 32*32*3); // read img as char*
+
+         //convert img from char* (1 byte per pixel) to float* (4 bytes per pixel)
+        float img_float[32*32*3];
+        //copy float* (4 bytes per pixel) as char* (4 bytes per pixel) to mini_batch
+        for(int i = 0; i < 32*32*3; i++){ // convert char to float.
+            img_float[i] = ((float)(uint8_t)img[i])/255;
+        }
+        
+        std::copy(static_cast<const char*>(static_cast<const void*>(img_float)),
+                  static_cast<const char*>(static_cast<const void*>(img_float)) + sizeof(float)*32*32*3, &micro_batch.inputs[0][32*32*3*position*sizeof(float)]);
         
         //convert label from char(1 byte) to int(4 bytes)
         int label_int = (int)label[0];
@@ -134,17 +141,8 @@ int EventGenerator::addToBatch(Mini_Batch_Generator &micro_batch, std::ifstream 
 
         //copy int(4 bytes) as char* (4bytes) to mini_batch
         std::copy(static_cast<const char*>(static_cast<const void*>(&label_int)),
-                  static_cast<const char*>(static_cast<const void*>(&label_int)) + sizeof(int), &micro_batch.inputs[0][position*sizeof(int)]);
+                  static_cast<const char*>(static_cast<const void*>(&label_int)) + sizeof(int), &micro_batch.inputs[1][position*sizeof(int)]);
         
-        //convert img from char* (1 byte per pixel) to float* (4 bytes per pixel)
-        float img_float[32*32*3];
-        //copy float* (4 bytes per pixel) as char* (4 bytes per pixel) to mini_batch
-        for(int i = 0; i < 32*32*3; i++){ // convert char to float.
-            img_float[i] = ((float)(uint8_t)img[i])/255;
-        }
-        
-        std::copy(static_cast<const char*>(static_cast<const void*>(img_float)),
-                  static_cast<const char*>(static_cast<const void*>(img_float)) + sizeof(float)*32*32*3, &micro_batch.inputs[1][32*32*3*position*sizeof(float)]);
         
         //Check if the micro_batch was read successfully. If it was not succesfully is because the file ended (thus we finished the current epoch)
         if(!infile){
@@ -177,11 +175,11 @@ vector<output_data> EventGenerator::generateMessages(const unsigned int quantity
     ubatch.mini_batch_size=mini_batch_size;
     ubatch.num_inputs = 2;
     ubatch.size_inputs = (size_t*) malloc(sizeof(size_t)*2); 
-    ubatch.size_inputs[0] = sizeof(int)*mini_batch_size; //labels size
-    ubatch.size_inputs[1] = sizeof(float)*mini_batch_size*32*32*3; //imgs size
+    ubatch.size_inputs[0] = sizeof(float)*mini_batch_size*32*32*3; //imgs size
+    ubatch.size_inputs[1] = sizeof(int)*mini_batch_size; //labels size
     ubatch.inputs = (char**) malloc(sizeof(char*)*2);
-    ubatch.inputs[0] = (char*) malloc(ubatch.size_inputs[0]); //labels
-    ubatch.inputs[1] = (char*) malloc(ubatch.size_inputs[1]); //imgs
+    ubatch.inputs[0] = (char*) malloc(ubatch.size_inputs[0]); //imgs
+    ubatch.inputs[1] = (char*) malloc(ubatch.size_inputs[1]); //labels
     
     
     //fill ubatch
@@ -211,8 +209,8 @@ vector<output_data> EventGenerator::generateMessages(const unsigned int quantity
     Serialization::wrap<int>(ubatch.mini_batch_size, message.get());
     Serialization::wrap<int>(ubatch.num_inputs, message.get());
     Serialization::dynamic_event_wrap<size_t>(ubatch.size_inputs[0], message.get(), sizeof(size_t) * ubatch.num_inputs);
-    Serialization::dynamic_event_wrap<char>(ubatch.inputs[0][0], message.get(), ubatch.size_inputs[0]); //labels
-    Serialization::dynamic_event_wrap<char>(ubatch.inputs[1][0], message.get(), ubatch.size_inputs[1]); //imgs
+    Serialization::dynamic_event_wrap<char>(ubatch.inputs[0][0], message.get(), ubatch.size_inputs[0]); //imgs
+    Serialization::dynamic_event_wrap<char>(ubatch.inputs[1][0], message.get(), ubatch.size_inputs[1]); //labels
 
     //define to which TensAIR model to send the message
     inference_rank = msg_count % worldSize;

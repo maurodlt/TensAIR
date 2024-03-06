@@ -3,7 +3,7 @@
 
 
 #ifndef SAVED_MODEL_CLI_PATH
-#define SAVED_MODEL_CLI_PATH "/Users/mauro.dalleluccatosi/Documents/environments/tensair/bin/saved_model_cli"
+#define SAVED_MODEL_CLI_PATH "" //hard code saved_model_cli if necessary for debugging in XCode
 #endif
 
 #define OUTPUT_METRICS 2 //number of output metrics, currently only Loss and Accuracy are supported
@@ -197,6 +197,9 @@ class TensAIR : public BasicVertex<>{
             // preallocate input tensors
             void pre_allocate_tensors(int mini_batch_size);
 
+            // preallocate input tensors that do not depend on the mini_batch_size
+            void pre_allocate_base_tensors();
+
             // allocate single tensor
             pair<vector<TF_Output>, vector<TF_Tensor*>> allocateTensor(int mini_batch_size, vector<char*> signature, vector<vector<int64_t>> dims, vector<TF_DataType> dt);
 
@@ -279,11 +282,11 @@ class TensAIR : public BasicVertex<>{
             // receives message from other TensAIR rank and apply it locally.
             virtual pair<bool,bool> apply_gradient(message_ptr message);
 
-            //based on the current model version, prints progress_bar during training
-            void progress_bar(int epoch, int new_model_version); 
+            //prints progress_bar during training
+            void progress_bar(bool new_epoch); 
             
             //prints training metrics obtained during current epoch and runs model evaluation
-            bool end_of_epoch(int new_model_version, int old_model_version); 
+            bool end_of_epoch(); 
             
             /*
             * Identify if model has converged or not. Simply check if the loss from current epoch is convergence_factor hogher than last ones and currentLoss < historicalLoss
@@ -373,7 +376,7 @@ class TensAIR : public BasicVertex<>{
             std::ofstream file_to_print; //file to print results
             std::string print_to_file = ""; //name of file to print results
             int print_frequency; //frequency results will be printed
-            bool has_converged = true; //determine if model has converged or needs to be trained
+            bool has_converged = false; //determine if model has converged or needs to be trained
             float convergence_factor; //minimum amount avg loss has to vary to determine model has not converged yet
             int epochs_for_convergence; //number of epochs that shall be analyzed to determine convergence
             bool reset_drtift_detector = false; //does the drift detector needs to be reset in the next iteration?
@@ -386,6 +389,7 @@ class TensAIR : public BasicVertex<>{
             int local_gradient_applied = 0; //number of gradients locally applied after the last broadcast
             vector<float> metrics_epoch_values; //sum of past metrics
             vector<int> metrics_epochs_count; //number of metrics summed
+            time_t start;
 
             //apply gradient
             vector<TF_Output> app_inp_op;
@@ -426,6 +430,16 @@ class TensAIR : public BasicVertex<>{
             int n_retrieve_delta_out;
             TF_Output* retrieve_delta_operators;
             TF_Tensor** retrieve_delta_values;
+
+            //predict
+            vector<TF_Output> predict_inp_op;
+            vector<TF_Tensor*> predict_inp_tensors;
+            int n_predict_inp;
+            vector<TF_Output> predict_out_op;
+            vector<TF_Tensor*> predict_out_tensors;
+            int n_predict_out;
+            TF_Output* predict_operators;
+            TF_Tensor** predict_values;
 };
 
 

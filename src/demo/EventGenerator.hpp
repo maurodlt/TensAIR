@@ -84,12 +84,10 @@ protected:
     long long int msg_count = 0; ///total number of messages generated
     int epoch = 0; ///current epoch
     string train_data_file;
-    //const char* train_data_file = "../data/CIFAR/data_batch_1.bin";
     static const unsigned int event_generator_rank = 0; ///rank that will ran the EventGenerator
 
 
     int drift_frequency;
     std::vector<std::pair<int,int>> conceptDrifts;
-    std::ofstream outFile;
 };
 };

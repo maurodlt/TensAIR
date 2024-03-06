@@ -20,6 +20,13 @@ using namespace drift_detector;
 DriftDetector::DriftDetector(const int tag, const int rank, int worldSize, int windowSize, int max_widowLoss, string file_cuts, MPI_Comm comm) :
 BasicVertex<>(tag, rank, worldSize, windowSize, comm), W(max_widowLoss){
     this->max_widowLoss = max_widowLoss;
+
+    if(file_cuts.empty()){
+        char* path_value = std::getenv("TENSAIR_PATH");
+        file_cuts = std::string(path_value) + "/data/optwin/cut_30-25000_0.01_0.5r.csv";
+    }
+
+
     this->file_cuts = file_cuts;
 
     if(rank == DriftDetector::drift_detector_rank){
@@ -362,7 +369,7 @@ int DriftDetector::readCuts(string filename){
     ifstream file(filename);
 
     if (!file.is_open()) {
-        std::cerr << "Error opening file" << std::endl;
+        std::cerr << "Error opening optwin file" << std::endl;
         return 1;
     }
 

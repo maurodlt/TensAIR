@@ -52,7 +52,6 @@
 #include "../usecases/WordEmbedding.hpp"
 #include "../usecases/Cifar.hpp"
 #include "../usecases/Demo.hpp"
-//#include "../usecases/Hessian_W2V.hpp"
 #include <tensorflow/c/c_api.h>
 #include <mpi4py/mpi4py.h>
 
@@ -80,48 +79,11 @@ int main(int argc, char* argv[]) {
 
 		} else if (s.compare("W2V") == 0) {
             dataflow = new word_embedding::WordEmbedding();
-        	/*int mini_batch_size = tp;
-            int batch_window = atol(argv[3]);
-            int msg_sec = atol(argv[4]);
-            int epochs = atol(argv[5]);
-            float sync_factor = atol(argv[6]);
-            int gpus_per_node = atol(argv[7]);
-            
-            dataflow = new word_embedding::WordEmbedding(mini_batch_size, batch_window, msg_sec, epochs, sync_factor, gpus_per_node);
-			*/
         } else if (s.compare("CIFAR") == 0) {
 			dataflow = new cifar::Cifar();
-            /*int mini_batch_size = tp;
-            int batch_window = atol(argv[3]);
-            int msg_sec = atol(argv[4]);
-            int epochs = atol(argv[5]);
-            float sync_factor = atol(argv[6]);
-            int gpus_per_node = atol(argv[7]);
-            
-            dataflow = new cifar::Cifar(mini_batch_size, batch_window, msg_sec, epochs, sync_factor, gpus_per_node);
-        	*/
         } else if (s.compare("DEMO") == 0) {
 			dataflow = new concept_drift_cifar::Demo();
-            /*int mini_batch_size = tp;
-            int batch_window = atol(argv[3]);
-            int msg_sec = atol(argv[4]);
-            int epochs = atol(argv[5]);
-            float sync_factor = atol(argv[6]);
-            int gpus_per_node = atol(argv[7]);
-            
-            dataflow = new cifar::Cifar(mini_batch_size, batch_window, msg_sec, epochs, sync_factor, gpus_per_node);
-        	*/
-        }/*else if (s.compare("HESSIAN") == 0) {
-            int mini_batch_size = tp;
-            int batch_window = atol(argv[3]);
-            int msg_sec = atol(argv[4]);
-            int epochs = atol(argv[5]);
-            float sync_factor = atol(argv[6]);
-            int gpus_per_node = atol(argv[7]);
-            
-            dataflow = new hessian_w2v::Hessian_W2V(mini_batch_size, batch_window, msg_sec, epochs, sync_factor, gpus_per_node);
-        
-        }*/
+        }
         
 	} else {
 

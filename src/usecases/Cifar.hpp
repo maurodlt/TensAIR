@@ -8,7 +8,7 @@ class Cifar: public Dataflow {
 
 public:
 
-    Vertex *generator, *model, *drift_detector;
+    Vertex *generator, *model;
 
     Cifar();
 	~Cifar();

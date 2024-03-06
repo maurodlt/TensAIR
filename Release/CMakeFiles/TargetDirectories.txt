@@ -1,0 +1,4 @@
+/Users/mauro.dalleluccatosi/Documents/GitHub-personal/TensAIR/Release/CMakeFiles/tensair_py.so.dir
+/Users/mauro.dalleluccatosi/Documents/GitHub-personal/TensAIR/Release/CMakeFiles/TensAIR.dir
+/Users/mauro.dalleluccatosi/Documents/GitHub-personal/TensAIR/Release/CMakeFiles/edit_cache.dir
+/Users/mauro.dalleluccatosi/Documents/GitHub-personal/TensAIR/Release/CMakeFiles/rebuild_cache.dir
