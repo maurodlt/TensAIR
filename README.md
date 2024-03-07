@@ -35,7 +35,7 @@ Build & Run:
     # Install TensorFlow C API
     wget https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-darwin-x86_64-2.9.1.tar.gz
     mkdir tensorflow_c_api
-    tar -C tensorflow_c_api -xzf libtensorflow-cpu-darwin-x86_64-2.5.0.tar.gz
+    tar -C tensorflow_c_api -xzf libtensorflow-cpu-darwin-x86_64-2.9.1.tar.gz
     echo "export LIBRARY_PATH=$LIBRARY_PATH:$PWD/tensorflow_c_api/lib" >> ~/.bashrc
     export LIBRARY_PATH=$LIBRARY_PATH:"$PWD/tensorflow_c_api/lib"
     export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:"$PWD/tensorflow_c_api/lib"
