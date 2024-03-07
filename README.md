@@ -1,9 +1,11 @@
 # TensAIR
-
+<div style="text-align: justify;">
+  
 **TensAIR** is a distributed framework for **training and predicting in ANNs models in real-time**. TensAIR extends the [AIR](https://gitlab.uni.lu/mtheobald/AIR) stream-processing engine, which allows **asynchornous and descentralized** processing of its dataflow operators (supporting the common dataflow operators like *Map*, *Reduce*, *Join*, etc.) in addition to new **train_step** and **predict** Onlie Learning (OL) functions. TensAIR implements the **TensorFlow C API** library on top of **AIR**, which means that it can scale out both the training and prediction tasks of an ANN model to multiple compute nodes, either with or without **GPUs** associated with them.
 
 Additionally, TensAIR supports both passive and active concept drift adaptation strategies. For active drift adaptation, one may instanciate the DriftDetector operator, which implements the [**OPTWIN**](https://github.com/maurodlt/OPTWIN) concept drift detector. For passive drift adaptation, one shall just set the variable *drift_detector_mode = TensAIR::Drift_Mode::AUTOMATIC*.
 
+</div>
 
 Build & Run:
 ------------
