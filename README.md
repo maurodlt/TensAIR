@@ -33,10 +33,10 @@ Build & Run:
     brew install cmake
 
     # Install TensorFlow C API
-    wget https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-darwin-x86_64-2.9.2.tar.gz
+    wget https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-gpu-darwin-x86_64-2.9.2.tar.gz
     mkdir tensorflow_c_api
-    tar -C tensorflow_c_api -xzf libtensorflow-cpu-darwin-x86_64-2.9.2.tar.gz
-    echo "export LIBRARY_PATH=$LIBRARY_PATH:$PWD/tensorflow_c_api/lib" >> ~/.bashrc
+    tar -C tensorflow_c_api -xzf libtensorflow-gpu-darwin-x86_64-2.9.2.tar.gz
+    echo 'export LIBRARY_PATH=$LIBRARY_PATH:"$PWD/tensorflow_c_api/lib"' >> ~/.bashrc
     export LIBRARY_PATH=$LIBRARY_PATH:"$PWD/tensorflow_c_api/lib"
     export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:"$PWD/tensorflow_c_api/lib"
 
@@ -57,7 +57,7 @@ Build & Run:
     ln -s libtensorflow.TF_VERSION.dylib libtensorflow.so.TF_VERSION #E.g. ln -s libtensorflow.2.9.2.dylib libtensorflow.so.2.9.2
     ln -s libtensorflow.TF_VERSION.dylib libtensorflow.so.TF_VERSION #E.g. ln -s libtensorflow.2.dylib libtensorflow.so.2
     ln -s libtensorflow.dylib libtensorflow.so
-    echo "export LIBRARY_PATH=$LIBRARY_PATH:$PWD/tensorflow_c_api/lib" >> ~/.bashrc
+    echo 'export LIBRARY_PATH=$LIBRARY_PATH:"$PWD/tensorflow_c_api/lib"' >> ~/.bashrc
     export LIBRARY_PATH=$LIBRARY_PATH:"$PWD/tensorflow_c_api/lib"
     export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:"$PWD/tensorflow_c_api/lib"
     
@@ -75,8 +75,8 @@ Build & Run:
     # Instal TensorFlow C API
     wget https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-gpu-linux-x86_64-2.9.2.tar.gz
     mkdir tensorflow_c_api
-    tar -C tensorflow_c_api -xzf libtensorflow-cpu-linux-x86_64-2.9.2.tar.gz
-    echo "export LIBRARY_PATH=$LIBRARY_PATH:$PWD/tensorflow_c_api/lib" >> ~/.bashrc
+    tar -C tensorflow_c_api -xzf libtensorflow-gpu-linux-x86_64-2.9.2.tar.gz
+    echo 'export LIBRARY_PATH=$LIBRARY_PATH:"$PWD/tensorflow_c_api/lib"' >> ~/.bashrc
     export LIBRARY_PATH=$LIBRARY_PATH:"$PWD/tensorflow_c_api/lib"
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"$PWD/tensorflow_c_api/lib"
     
