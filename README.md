@@ -160,7 +160,8 @@ Run under *OVERCOMMIT* option
   srun --overcommit -n <no.of dataflows> $TENSAIR_PATH/lib/TensAIR <use-case abbreviation>
 ```
 
-### Results visualization
+Results visualization:
+------------
   - The results are stored in the /output directory in .csv with the following format:
     - In case of prediction:  
       - predicting, iteration, loss, prediction
@@ -170,12 +171,13 @@ Run under *OVERCOMMIT* option
   - To visualize TensAIR loss over time one may simply plot it using matplotlib as exemplified in  the following notebooks: [CIFAR-Run.ipynb](https://github.com/maurodlt/TensAIR/blob/main/Examples/CIFAR/CIFAR-Run.ipynb), [W2V-Run.ipynb](https://github.com/maurodlt/TensAIR/blob/main/Examples/W2V/W2V-Run.ipynb), and [DEMO-Run.ipynb](https://github.com/maurodlt/TensAIR/blob/main/Examples/DEMO/DEMO-Run.ipynb). Below, there is an example such plot.
     ![Plot of DEMO usecase](demo_usecase_plot.svg)
 
-### Available usecases
-
+Available usecases:
+------------
  - Word2Vec (W2V)
  - CIFAR-10 (CIFAR)
  - CIFAR-10 with active drift adaptation (DEMO)
 
-### Cite us
+### Cite us:
+------------
 
 Mauro D. L. Tosi, Vinu E. Venugopal, and Martin Theobald. 2024. TensAIR: Real-Time Training of Neural Networks from Data-streams. In 2024 The 8th International Conference on Machine Learning and Soft Computing (ICMLSC 2024), January 26--28, 2024, Singapore, Singapore. ACM, New York, NY, USA 10 Pages. https://doi.org/10.1145/3647750.3647762
