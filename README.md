@@ -177,7 +177,7 @@ Available usecases:
  - CIFAR-10 (CIFAR)
  - CIFAR-10 with active drift adaptation (DEMO)
 
-### Cite us:
+Cite us:
 ------------
 
 Mauro D. L. Tosi, Vinu E. Venugopal, and Martin Theobald. 2024. TensAIR: Real-Time Training of Neural Networks from Data-streams. In 2024 The 8th International Conference on Machine Learning and Soft Computing (ICMLSC 2024), January 26--28, 2024, Singapore, Singapore. ACM, New York, NY, USA 10 Pages. https://doi.org/10.1145/3647750.3647762
