@@ -33,15 +33,15 @@ Build & Run:
     brew install cmake
 
     # Install TensorFlow C API
-    wget https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-gpu-darwin-x86_64-2.9.2.tar.gz
+    wget https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-gpu-darwin-x86_64.9.2.tar.gz
     mkdir tensorflow_c_api
-    tar -C tensorflow_c_api -xzf libtensorflow-gpu-darwin-x86_64-2.9.2.tar.gz
+    tar -C tensorflow_c_api -xzf libtensorflow-gpu-darwin-x86_64.9.2.tar.gz
     echo 'export LIBRARY_PATH=$LIBRARY_PATH:"$PWD/tensorflow_c_api/lib"' >> ~/.bashrc
     export LIBRARY_PATH=$LIBRARY_PATH:"$PWD/tensorflow_c_api/lib"
     export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:"$PWD/tensorflow_c_api/lib"
 
     #install pybind, mpi4py, and tensorflow
-    pip install pybind11 mpi4py tensorflow==-2.9.2
+    pip install pybind11 mpi4py tensorflow==2.9.2
   ```
   On Mac(arm m1/m2): 
   ```sh
@@ -82,7 +82,7 @@ Build & Run:
     
 
     #install pybind and mpi4py
-    pip install pybind11 mpi4py tensorflow==-2.9.2
+    pip install pybind11 mpi4py tensorflow==2.9.2
   ```
 ### Build and Run TensAIR
 
@@ -189,4 +189,4 @@ Available usecases:
 Cite us:
 ------------
 
-Mauro D. L. Tosi, Vinu E. Venugopal, and Martin Theobald. 2024. TensAIR: Real-Time Training of Neural Networks from Data-streams. In 2024 The 8th International Conference on Machine Learning and Soft Computing (ICMLSC 2024), January 26--28, 2024, Singapore, Singapore. ACM, New York, NY, USA 10 Pages. https://doi.org/10.1145/3647750.3647762
+Mauro D. L. Tosi, Vinu E. Venugopal, and Martin Theobald. 2024. TensAIR: Real-Time Training of Neural Networks from Data-streams. In 2024 The 8th International Conference on Machine Learning and Soft Computing (ICMLSC 2024), January 26-8, 2024, Singapore, Singapore. ACM, New York, NY, USA 10 Pages. https://doi.org/10.1145/3647750.3647762
