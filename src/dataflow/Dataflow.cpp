@@ -149,6 +149,13 @@ void Dataflow::streamProcess() {
 		}
 	}
 
+	//When there is only 1 vertice that connects with itself
+    if (vertices.size() == 1){
+        Vertex* vertex = (Vertex*) vertices[0];
+        vertex->startThreadsStream();
+        vertex->joinThreadsStream();
+    }
+
 	for (int j = 0; j < i; j++) {
 		pthread_join(threads[j], (void **) NULL);
 	}

@@ -47,13 +47,17 @@
 #include <ctime>
 #include <iostream>
 
+#include <tensorflow/c/c_api.h>
+#include <mpi4py/mpi4py.h>
+
 #include "../usecases/MapReduce.hpp"
 #include "../usecases/StreamingTest.hpp"
 #include "../usecases/WordEmbedding.hpp"
 #include "../usecases/Cifar.hpp"
 #include "../usecases/Demo.hpp"
-#include <tensorflow/c/c_api.h>
-#include <mpi4py/mpi4py.h>
+#include "../usecases/VGG16.hpp"
+
+
 
 
 using namespace std;
@@ -83,6 +87,8 @@ int main(int argc, char* argv[]) {
 			dataflow = new cifar::Cifar();
         } else if (s.compare("DEMO") == 0) {
 			dataflow = new concept_drift_cifar::Demo();
+        } else if (s.compare("VGG16") == 0) {
+			dataflow = new vgg16::VGG16();
         }
         
 	} else {

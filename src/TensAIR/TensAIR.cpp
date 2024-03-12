@@ -1090,9 +1090,6 @@ void TensAIR::update_metrics(int num_output_metrics, float** metrics_data, int n
     for(int i = 0; i < num_output_metrics; i++){
         metrics_epoch_values[i] += ((float) metrics_data[i][0]);
         metrics_epochs_count[i] += n_delta;
-        if(metrics_data[i][0]/n_delta > 100){
-            cout << "Here is the error";
-        }
     }
     return;
 }
@@ -1607,6 +1604,26 @@ void TensAIR::clear_delta(){
     return;
 }
 
+int TensAIR::print_to_file_training(float** metrics_data, int n_metrics, int n_delta){
+    // Check if the file is open
+    if (!this->file_to_print.is_open()) {
+        std::cerr << "Error opening file to print to!" << std::endl;
+        return 1;
+    }
+
+    file_to_print << "training, " << gradientsApplied << ",";
+    
+    //add metrics to file in csv format
+    for(int i = 0; i < n_metrics; i++){
+        if(i+1 == n_metrics){ // if last metric, end line
+            file_to_print << metrics_data[i][0]/n_delta << std::endl;
+        }else{
+            file_to_print << metrics_data[i][0]/n_delta << ",";
+        }
+    }
+    return 0;
+}
+
 
 pair<bool,bool> TensAIR::after_gradient_application(float** metrics_data, int n_metrics, int n_delta){
     int former_update = gradientsApplied;
@@ -1614,24 +1631,9 @@ pair<bool,bool> TensAIR::after_gradient_application(float** metrics_data, int n_
     
     // check if results should be printed to file
     if (floor(former_update / print_frequency)  < floor(gradientsApplied / print_frequency)){
-        // Check if the file is open
-        if (!this->file_to_print.is_open()) {
-            std::cerr << "Error opening file to print to!" << std::endl;
-            return make_pair(false, true);
-        }
-
-        file_to_print << "training, " << gradientsApplied << ",";
         
-        //add metrics to file in csv format
-        for(int i = 0; i < n_metrics; i++){
-            if(metrics_data[i][0]/n_delta > 100){
-                cout << "Here is the error";
-            }
-            if(i+1 == n_metrics){ // if last metric, end line
-                file_to_print << metrics_data[i][0]/n_delta << std::endl;
-            }else{
-                file_to_print << metrics_data[i][0]/n_delta << ",";
-            }
+        if(print_to_file_training(metrics_data, n_metrics, n_delta)){
+            return make_pair(false, true);
         }
     }
     
@@ -1654,10 +1656,16 @@ pair<bool,bool> TensAIR::after_gradient_application(float** metrics_data, int n_
         progress_bar(false);
     }
     
-    bool end_training = false;
-    if(epoch == this->epochs){
-        end_training = true;
-    }
+    bool end_training_bool = end_training(metrics_data, n_metrics, n_delta);
+    
 
-    return make_pair(converged, end_training);
+    return make_pair(converged, end_training_bool);
+}
+
+
+bool TensAIR::end_training(float** metrics_data, int n_metrics, int n_delta){
+    if(epoch == this->epochs){
+            return true;
+    }
+    return false;
 }

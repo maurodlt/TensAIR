@@ -136,12 +136,16 @@ set(LIST_FILES
         src/usecases/Cifar.cpp
         src/usecases/Demo.hpp
         src/usecases/Demo.cpp
+        src/usecases/VGG16.cpp
+        src/usecases/VGG16.hpp
         src/word_embedding/EventGenerator.hpp
         src/word_embedding/EventGenerator.cpp
         src/cifar/EventGenerator.hpp
         src/cifar/EventGenerator.cpp
         src/demo/EventGenerator.hpp
         src/demo/EventGenerator.cpp
+        src/vgg16_Convergence/VGG16_Convergence.cpp
+        src/vgg16_Convergence/VGG16_Convergence.hpp
 )
 
 #Python Executable

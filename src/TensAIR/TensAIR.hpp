@@ -97,7 +97,7 @@ class TensAIR : public BasicVertex<>{
         TensAIR(const int tag, const int rank, const int worldSize, int windowSize, int broadcast_frequency, int epochs, int gpus_per_node, const char* saved_model_dir, const char* eval_data_file, const char* tags, int epoch_size = 1000, float convergence_factor = 1e-2, int epochs_for_convergence=2, Drift_Mode drift_detector_mode = TensAIR::Drift_Mode::AUTOMATIC, std::string print_to_folder = "", int print_frequency = 10, bool preallocate_tensors = false, int mini_batch_size = 0, MPI_Comm comm = MPI_COMM_WORLD);
         
         ///Default destructor
-        virtual ~TensAIR();
+        ~TensAIR();
 
         /**Main method that manages TensAIR dataflow**/
         void streamProcess(int channel);
@@ -175,9 +175,13 @@ class TensAIR : public BasicVertex<>{
              * 
              * It is also possible to define which is the target operator. targetOperator_index = position of the operator in the links defined in the dataflow (in respect to current operator)
              * */
-            void send_to_specific_operator(vector<output_data> messages, int targetOperator_index);
+            virtual void send_to_specific_operator(vector<output_data> messages, int targetOperator_index);
 
             static void NoOpDeallocator(void* data, size_t a, void* b) {} ///Used by TF when allocating memory for Tensors
+
+            virtual int print_to_file_training(float** metrics_data, int n_metrics, int n_delta);
+
+            virtual bool end_training(float** metrics_data, int n_metrics, int n_delta);
 
             /*
             * Method that loads metadata information from input and output tensor
@@ -227,7 +231,7 @@ class TensAIR : public BasicVertex<>{
             Mini_Batch read_MiniBatch(message_ptr message); 
 
             //receives message from Event Generator and returns message with Tensors(gradients) (to send to all TensAIR ranks) & loss (to send to drift detector)
-            virtual void train_step(message_ptr message);
+            void train_step(message_ptr message);
 
             //receives message from Event Generator and returns message with predictions (to send to next Vertex on dataflow) & loss (to send to drift detector)
             vector<output_data> predict(message_ptr message);
@@ -257,10 +261,10 @@ class TensAIR : public BasicVertex<>{
             * Fetches new messages from the input buffer.
             *     Updates in the model are inserted at the beggining of the list. Then, the train steps are inserted at the end of it.
             */
-            virtual void fetchUpdateMessages(int channel, list<message_ptr>& lis);
+            void fetchUpdateMessages(int channel, list<message_ptr>& lis);
             
             //fetch messages from lis buffer (which arrived from other TensAIR ranks) 
-            virtual message_ptr fetchNextMessage(int channel, list<message_ptr>& pthread_waiting_list); 
+            message_ptr fetchNextMessage(int channel, list<message_ptr>& pthread_waiting_list); 
             
 
             /*
@@ -280,7 +284,7 @@ class TensAIR : public BasicVertex<>{
             void update_metrics(int num_output_metrics, float** metrics_data, int n_delta); ///updates local metrics based on metrics from new gradients
             
             // receives message from other TensAIR rank and apply it locally.
-            virtual pair<bool,bool> apply_gradient(message_ptr message);
+            pair<bool,bool> apply_gradient(message_ptr message);
 
             //prints progress_bar during training
             void progress_bar(bool new_epoch); 
