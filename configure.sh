@@ -86,6 +86,14 @@ fi
 export LIBTENSORFLOW_LIB_DIR="${LIBTENSORFLOW_PATH}"
 export LIBTENSORFLOW_INCLUDE_DIR="${LIBTENSORFLOW_PATH%????}/include"
 
+# Create /lib folder if it does not exist
+lib_folder="$(dirname "${BASH_SOURCE[0]}")/lib"
+# Check if the folder doesn't exist
+if [ ! -d "$lib_folder" ]; then
+    # Create the folder
+    mkdir -p "$lib_folder"
+fi
+
 
 #Export TensAIR location
 LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/lib" && pwd)"

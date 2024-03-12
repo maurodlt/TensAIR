@@ -1,9 +1,11 @@
 # TensAIR
-
+<div style="text-align: justify;">
+  
 **TensAIR** is a distributed framework for **training and predicting in ANNs models in real-time**. TensAIR extends the [AIR](https://gitlab.uni.lu/mtheobald/AIR) stream-processing engine, which allows **asynchornous and descentralized** processing of its dataflow operators (supporting the common dataflow operators like *Map*, *Reduce*, *Join*, etc.) in addition to new **train_step** and **predict** Onlie Learning (OL) functions. TensAIR implements the **TensorFlow C API** library on top of **AIR**, which means that it can scale out both the training and prediction tasks of an ANN model to multiple compute nodes, either with or without **GPUs** associated with them.
 
 Additionally, TensAIR supports both passive and active concept drift adaptation strategies. For active drift adaptation, one may instanciate the DriftDetector operator, which implements the [**OPTWIN**](https://github.com/maurodlt/OPTWIN) concept drift detector. For passive drift adaptation, one shall just set the variable *drift_detector_mode = TensAIR::Drift_Mode::AUTOMATIC*.
 
+</div>
 
 Build & Run:
 ------------
@@ -17,7 +19,7 @@ Build & Run:
 
 - mpi4py 
 
-- TensorFlow C API; version  above 2.3 and below 2.9.1 ([tutorial](https://www.tensorflow.org/install))
+- TensorFlow C API; version  above 2.3 and below 2.9.2 ([tutorial]([https://www.tensorflow.org/install](https://www.tensorflow.org/install/lang_c)))
 
 - [saved_model_cli](https://www.tensorflow.org/guide/saved_model#install_the_savedmodel_cli) (automatically installed with TensorFlow)
 
@@ -31,13 +33,15 @@ Build & Run:
     brew install cmake
 
     # Install TensorFlow C API
-    wget https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-darwin-x86_64-2.5.0.tar.gz
+    wget https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-gpu-darwin-x86_64.9.2.tar.gz
     mkdir tensorflow_c_api
-    tar -C tensorflow_c_api -xzf libtensorflow-cpu-darwin-x86_64-2.5.0.tar.gz
-    sudo ldconfig
+    tar -C tensorflow_c_api -xzf libtensorflow-gpu-darwin-x86_64.9.2.tar.gz
+    echo 'export LIBRARY_PATH=$LIBRARY_PATH:"$PWD/tensorflow_c_api/lib"' >> ~/.bashrc
+    export LIBRARY_PATH=$LIBRARY_PATH:"$PWD/tensorflow_c_api/lib"
+    export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:"$PWD/tensorflow_c_api/lib"
 
     #install pybind, mpi4py, and tensorflow
-    pip install pybind11 mpi4py tensorflow
+    pip install pybind11 mpi4py tensorflow==2.9.2
   ```
   On Mac(arm m1/m2): 
   ```sh
@@ -50,12 +54,15 @@ Build & Run:
     brew install libtensorflow
     cd $(brew --prefix libtensorflow)/lib #go to location in which libtensorflow was installed
     # Create links of the libraries with names on mac standard
-    ln -s libtensorflow.TF_VERSION.dylib libtensorflow.so.TF_VERSION #E.g. ln -s libtensorflow.2.9.1.dylib libtensorflow.so.2.9.1
+    ln -s libtensorflow.TF_VERSION.dylib libtensorflow.so.TF_VERSION #E.g. ln -s libtensorflow.2.9.2.dylib libtensorflow.so.2.9.2
     ln -s libtensorflow.TF_VERSION.dylib libtensorflow.so.TF_VERSION #E.g. ln -s libtensorflow.2.dylib libtensorflow.so.2
     ln -s libtensorflow.dylib libtensorflow.so
+    echo 'export LIBRARY_PATH=$LIBRARY_PATH:"$PWD/tensorflow_c_api/lib"' >> ~/.bashrc
+    export LIBRARY_PATH=$LIBRARY_PATH:"$PWD/tensorflow_c_api/lib"
+    export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:"$PWD/tensorflow_c_api/lib"
     
     #install pybind and mpi4py, and tensorflow
-    pip install pybind11 mpi4py tensorflow_macos
+    pip install pybind11 mpi4py tensorflow_macos==2.9.2
   ```
 
   On Linux: 
@@ -66,13 +73,16 @@ Build & Run:
     sudo apt-get install cmake
   
     # Instal TensorFlow C API
-    wget https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-2.5.0.tar.gz
+    wget https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-gpu-linux-x86_64-2.9.2.tar.gz
     mkdir tensorflow_c_api
-    tar -C tensorflow_c_api -xzf libtensorflow-cpu-linux-x86_64-2.5.0.tar.gz
-    sudo ldconfig
+    tar -C tensorflow_c_api -xzf libtensorflow-gpu-linux-x86_64-2.9.2.tar.gz
+    echo 'export LIBRARY_PATH=$LIBRARY_PATH:"$PWD/tensorflow_c_api/lib"' >> ~/.bashrc
+    export LIBRARY_PATH=$LIBRARY_PATH:"$PWD/tensorflow_c_api/lib"
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"$PWD/tensorflow_c_api/lib"
+    
 
     #install pybind and mpi4py
-    pip install pybind11 mpi4py tensorflow
+    pip install pybind11 mpi4py tensorflow==2.9.2
   ```
 ### Build and Run TensAIR
 
@@ -84,7 +94,7 @@ Build & Run:
 - Build the project
 ```sh
   cd TensAIR
-  echo 'export TENSAIR_PATH="$PWD"' >> ~/.bashrc #Add TensAIR directory to the path at every new session. 
+  echo "export TENSAIR_PATH=$PWD" >> ~/.bashrc #Add TensAIR directory to the path at every new session. 
   source configure.sh  #Add paths to pre-installed libraries (they are usually automatically recognized).
   mkdir Release
   cd Release
@@ -94,6 +104,7 @@ Build & Run:
 ```
 
 - Run a use-case
+  - **Important**: Current models in this repository were generated using Tensorflow 2.9.2. Therefore, if using a different Tensorflow version, it may be necessary to regenerate the models using the following notebooks: [W2V-Model.ipynb](https://github.com/maurodlt/TensAIR/tree/main/Examples/W2V/W2V-Model.ipynb), [CIFAR-Model.ipynb](https://github.com/maurodlt/TensAIR/tree/main/Examples/CIFAR/CIFAR-Model.ipynb), and [DEMO-Model.ipynb](https://github.com/maurodlt/TensAIR/tree/main/Examples/DEMO/DEMO-Model.ipynb)
 ```sh
   mpirun -np <no.of dataflows> ../lib/TensAIR <use-case abbreviation>
   #(E.g., mpirun -np 2 ./TensAIR DEMO)
@@ -158,7 +169,8 @@ Run under *OVERCOMMIT* option
   srun --overcommit -n <no.of dataflows> $TENSAIR_PATH/lib/TensAIR <use-case abbreviation>
 ```
 
-### Results visualization
+Results visualization:
+------------
   - The results are stored in the /output directory in .csv with the following format:
     - In case of prediction:  
       - predicting, iteration, loss, prediction
@@ -168,12 +180,13 @@ Run under *OVERCOMMIT* option
   - To visualize TensAIR loss over time one may simply plot it using matplotlib as exemplified in  the following notebooks: [CIFAR-Run.ipynb](https://github.com/maurodlt/TensAIR/blob/main/Examples/CIFAR/CIFAR-Run.ipynb), [W2V-Run.ipynb](https://github.com/maurodlt/TensAIR/blob/main/Examples/W2V/W2V-Run.ipynb), and [DEMO-Run.ipynb](https://github.com/maurodlt/TensAIR/blob/main/Examples/DEMO/DEMO-Run.ipynb). Below, there is an example such plot.
     ![Plot of DEMO usecase](demo_usecase_plot.svg)
 
-### Available usecases
-
+Available usecases:
+------------
  - Word2Vec (W2V)
  - CIFAR-10 (CIFAR)
  - CIFAR-10 with active drift adaptation (DEMO)
 
-### Cite us
+Cite us:
+------------
 
-Mauro D. L. Tosi, Vinu E. Venugopal, and Martin Theobald. 2024. TensAIR: Real-Time Training of Neural Networks from Data-streams. In 2024 The 8th International Conference on Machine Learning and Soft Computing (ICMLSC 2024), January 26--28, 2024, Singapore, Singapore. ACM, New York, NY, USA 10 Pages. https://doi.org/10.1145/3647750.3647762
+Mauro D. L. Tosi, Vinu E. Venugopal, and Martin Theobald. 2024. TensAIR: Real-Time Training of Neural Networks from Data-streams. In 2024 The 8th International Conference on Machine Learning and Soft Computing (ICMLSC 2024), January 26-8, 2024, Singapore, Singapore. ACM, New York, NY, USA 10 Pages. https://doi.org/10.1145/3647750.3647762
