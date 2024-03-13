@@ -5,6 +5,7 @@
 #include <random>
 #include <vector>
 #include <queue>
+#include <algorithm>
 
 VGG16_Convergence::VGG16_Convergence(const int tag, const int rank, const int worldSize, int windowSize, int broadcast_frequency, int epochs, int gpus_per_node, const char* saved_model_dir, const char* eval_data_file, const char* tags, int epoch_size, float convergence_factor, int epochs_for_convergence, TensAIR::Drift_Mode drift_detector_mode, std::string print_to_folder, int print_frequency, bool preallocate_tensors, int mini_batch_size, MPI_Comm comm) :
 TensAIR(tag, rank, worldSize, windowSize, broadcast_frequency, epochs, gpus_per_node, saved_model_dir, eval_data_file, tags, epoch_size, convergence_factor, epochs_for_convergence, drift_detector_mode, print_to_folder, print_frequency, preallocate_tensors, mini_batch_size, comm) {

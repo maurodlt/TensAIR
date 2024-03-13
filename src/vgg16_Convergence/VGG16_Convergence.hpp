@@ -2,6 +2,7 @@
 #include "../TensAIR/TensAIR.hpp"
 #include <vector>
 #include <queue> 
+#include <chrono>
 
 struct Mini_Batch_Generator {
     int mini_batch_size;

@@ -7,6 +7,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <iostream>
+#include <algorithm>
 
 /**
  * Default Constructor
