@@ -16,9 +16,8 @@ VGG16::VGG16() : Dataflow() {
 
     int gpus_per_node = 0;
     int broadcast_frequency = worldSize; //mini batches per broadcast (recommended to set as the world_size)
-    //std::string saved_model_dir_str = std::string(path_value) + "/data/cifar/cifar_model.tf"; //file with tf model created using CIFAR-Model notebook
-    //const char* saved_model_dir = saved_model_dir_str.c_str();
-    const char* saved_model_dir = "/Users/mauro.dalleluccatosi/Documents/GitHub-personal/TensAIR/data/vgg16/vgg16_model.tf"; //file with tf model
+    std::string saved_model_dir_str = std::string(path_value) + "/data/vgg16/vgg16_model.tf";
+    const char* saved_model_dir = saved_model_dir_str.c_str();
     const char* eval_data_file = ""; //file with evaluation data (parsed to binary file)
     //size of message between EventGenerator and TensAIR
     

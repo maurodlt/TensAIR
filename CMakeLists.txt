@@ -13,9 +13,6 @@ set(LIBTENSORFLOW_LIB_DIR $ENV{LIBTENSORFLOW_LIB_DIR})
 set(LIBTENSORFLOW_INCLUDE_DIR $ENV{LIBTENSORFLOW_INCLUDE_DIR})
 #set(LIBTENSORFLOW_INCLUDE_DIR ".../libtensorflow/include") #tf_c location/include
 
-#set compiler
-execute_process(COMMAND which [mpic++] [OUTPUT_VARIABLE CMAKE_CXX_COMPILER])
-
 #find required packeges
 find_package(MPI 3 REQUIRED) #find MPI
 find_package(Python 3.9 COMPONENTS Interpreter Development REQUIRED) #find Python, set manually with the python path in "python3 -m pybind11 --includes"

@@ -3,6 +3,8 @@
 #include <vector>
 #include <queue> 
 #include <chrono>
+#include <cstdlib>
+#include <iostream>
 
 struct Mini_Batch_Generator {
     int mini_batch_size;
@@ -39,7 +41,9 @@ class VGG16_Convergence : public TensAIR{
         bool warmup = true;
         float decay = 1e-5;
         Dataset dataset;
-        const char* train_data_file = "/Users/mauro.dalleluccatosi/Documents/GitHub/tensair-dev/data/TinyImageNet/train.bin"; //file with trining data
+        char* path_value = std::getenv("TENSAIR_PATH");
+        std::string train_data_file_str = std::string(path_value) + "/data/vgg16/tiny_imagenet_train.bin"; 
+        const char* train_data_file = train_data_file_str.c_str();
         std::vector<Mini_Batch_Generator> data;
         std::chrono::time_point<std::chrono::high_resolution_clock> lastUpdate;
         float currentError = 100000; //high value that will be overwritten
