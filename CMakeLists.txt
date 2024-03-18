@@ -135,6 +135,8 @@ set(LIST_FILES
         src/usecases/Demo.cpp
         src/usecases/VGG16.cpp
         src/usecases/VGG16.hpp
+        src/usecases/RESNET50.cpp
+        src/usecases/RESNET50.hpp
         src/word_embedding/EventGenerator.hpp
         src/word_embedding/EventGenerator.cpp
         src/cifar/EventGenerator.hpp
@@ -143,6 +145,8 @@ set(LIST_FILES
         src/demo/EventGenerator.cpp
         src/vgg16_Convergence/VGG16_Convergence.cpp
         src/vgg16_Convergence/VGG16_Convergence.hpp
+        src/resnet50_Convergence/RESNET50_Convergence.cpp
+        src/resnet50_Convergence/RESNET50_Convergence.hpp
 )
 
 #Python Executable

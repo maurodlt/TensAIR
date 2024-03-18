@@ -1,22 +1,21 @@
-#include "VGG16_Convergence.hpp"
+#include "RESNET50_Convergence.hpp"
 #include <fstream>
 #include <sstream>
 #include <iostream>
 #include <random>
 #include <vector>
-#include <chrono>
 #include <queue>
 #include <algorithm>
 
-VGG16_Convergence::VGG16_Convergence(const int tag, const int rank, const int worldSize, int windowSize, int broadcast_frequency, int epochs, int gpus_per_node, const char* saved_model_dir, const char* eval_data_file, const char* tags, int epoch_size, float convergence_factor, int epochs_for_convergence, TensAIR::Drift_Mode drift_detector_mode, std::string print_to_folder, int print_frequency, bool preallocate_tensors, int mini_batch_size, MPI_Comm comm) :
+RESNET50_Convergence::RESNET50_Convergence(const int tag, const int rank, const int worldSize, int windowSize, int broadcast_frequency, int epochs, int gpus_per_node, const char* saved_model_dir, const char* eval_data_file, const char* tags, int epoch_size, float convergence_factor, int epochs_for_convergence, TensAIR::Drift_Mode drift_detector_mode, std::string print_to_folder, int print_frequency, bool preallocate_tensors, int mini_batch_size, float loss_objective, MPI_Comm comm) :
 TensAIR(tag, rank, worldSize, windowSize, broadcast_frequency, epochs, gpus_per_node, saved_model_dir, eval_data_file, tags, epoch_size, convergence_factor, epochs_for_convergence, drift_detector_mode, print_to_folder, print_frequency, preallocate_tensors, mini_batch_size, comm) {
+    this->loss_objective=loss_objective;
     this->dataset = readDataset();
-    this->print_to_folder = print_to_folder;
     shuffleDataset();
     this->data = createMinibatches(this->dataset, mini_batch_size);
-    cout << "Dataset read succesfully!" << std::endl;
+    cout << "Dataset read succesfully!" << endl;
 
-    this->itr_per_epoch = (int)this->data.size();
+    this->itr_per_epoch = this->data.size();
 
     if (!file_to_print.is_open()) {
         std::cout << "Failed to open the file." << std::endl;
@@ -27,9 +26,10 @@ TensAIR(tag, rank, worldSize, windowSize, broadcast_frequency, epochs, gpus_per_
         file_to_print << "Gradients applied, Gradients calculated, Loss, Time_diff(s)" << std::endl;;
         file_to_print.flush();
     }
+
 }
 
-void VGG16_Convergence::streamProcess(int channel) {
+void RESNET50_Convergence::streamProcess(int channel) {
     MPI_Barrier(this->COMM_WORLD);
 
     auto start = std::chrono::high_resolution_clock::now();
@@ -73,7 +73,6 @@ void VGG16_Convergence::streamProcess(int channel) {
             
             //if no messages exists, calculate new gradient
             if(!update){ //no message received
-                auto st = std::chrono::high_resolution_clock::now();
                 //create empty message to pass to processGradientCalc (minibatch size 1 and empty content)
                 message_ptr message_batch = generateMessage();
                 if(message_batch != NULL){
@@ -83,11 +82,6 @@ void VGG16_Convergence::streamProcess(int channel) {
                         break;
                     }
                 }
-                auto end = std::chrono::high_resolution_clock::now();
-                std::chrono::duration<double>  dur = end - st; // Calculate the time difference in microseconds
-                auto sec = dur.count();
-                
-                cout << "message_from_generator: " << sec << endl;
             }
             
             //if there exists a message, apply its gradient
@@ -103,8 +97,6 @@ void VGG16_Convergence::streamProcess(int channel) {
                 auto end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double>  dur = end - st; // Calculate the time difference in microseconds
                 auto sec = dur.count();
-                
-                cout << "message_from_model: " << sec << endl;
             }
         } 
     }
@@ -126,7 +118,7 @@ void VGG16_Convergence::streamProcess(int channel) {
     
 }
 
-Dataset VGG16_Convergence::readDataset(){
+Dataset RESNET50_Convergence::readDataset(){
     Dataset dataset;
     dataset.num_inputs = 0;
     
@@ -147,7 +139,7 @@ Dataset VGG16_Convergence::readDataset(){
     return dataset;
 }
 
-void VGG16_Convergence::shuffleDataset(){
+void RESNET50_Convergence::shuffleDataset(){
     unsigned int seed = (10000 * rank) + epoch;
     std::mt19937 gen(seed);
     
@@ -158,7 +150,7 @@ void VGG16_Convergence::shuffleDataset(){
     return;
 }
 
-vector<Mini_Batch_Generator> VGG16_Convergence::createMinibatches(Dataset dataset, int mini_batch_size){
+vector<Mini_Batch_Generator> RESNET50_Convergence::createMinibatches(Dataset dataset, int mini_batch_size){
     int n_minibatches = floor(dataset.num_inputs / mini_batch_size);
     
     std::vector<Mini_Batch_Generator> mini_batches;
@@ -185,7 +177,7 @@ vector<Mini_Batch_Generator> VGG16_Convergence::createMinibatches(Dataset datase
 }
 
 
-void VGG16_Convergence::addToMiniBatch(Mini_Batch_Generator *ubatch, int position){
+void RESNET50_Convergence::addToMiniBatch(Mini_Batch_Generator *ubatch, int position){
     pair<char*, char*> imgs_lab = *this->iterator_images_labels;
     char* img = imgs_lab.first;
     char* lab = imgs_lab.second;
@@ -200,7 +192,7 @@ void VGG16_Convergence::addToMiniBatch(Mini_Batch_Generator *ubatch, int positio
     return;
 }
 
-void VGG16_Convergence::refillMiniBatches(){
+void RESNET50_Convergence::refillMiniBatches(){
     this->it = this->data.begin();
     this->iterator_images_labels = this->dataset.imgs_labels.begin();
     
@@ -211,7 +203,7 @@ void VGG16_Convergence::refillMiniBatches(){
     }
 }
 
-Mini_Batch_Generator VGG16_Convergence::nextElement(){
+Mini_Batch_Generator RESNET50_Convergence::nextElement(){
     if (this->it == this->data.end()) {
         shuffleDataset();
         refillMiniBatches();
@@ -224,7 +216,7 @@ Mini_Batch_Generator VGG16_Convergence::nextElement(){
 }
 
 
-message_ptr VGG16_Convergence::generateMessage(){
+message_ptr RESNET50_Convergence::generateMessage(){
     Mini_Batch_Generator ubatch = nextElement();
     
     //calculate message size
@@ -246,7 +238,7 @@ message_ptr VGG16_Convergence::generateMessage(){
     return message;
 }
 
-int VGG16_Convergence::readTrainingSample(std::ifstream &infile, char* image, char* label_from_image){
+int RESNET50_Convergence::readTrainingSample(std::ifstream &infile, char* image, char* label_from_image){
     char img[64*64*3];
     char label[1];
     
@@ -283,7 +275,7 @@ int VGG16_Convergence::readTrainingSample(std::ifstream &infile, char* image, ch
 }
 
 
-int VGG16_Convergence::print_to_file_training(float** metrics_data, int n_metrics, int n_delta){
+int RESNET50_Convergence::print_to_file_training(float** metrics_data, int n_metrics, int n_delta){
     
     auto now = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> duration = now - lastUpdate; // Calculate the time difference in microseconds
@@ -303,7 +295,7 @@ int VGG16_Convergence::print_to_file_training(float** metrics_data, int n_metric
     return 0;
 }
 
-bool VGG16_Convergence::end_training(float** metrics_data, int n_metrics, int n_delta){
+bool RESNET50_Convergence::end_training(float** metrics_data, int n_metrics, int n_delta){
     // maintains a sliding window of the most recent losses and their correspondent average
     for (int i = 0; i < n_delta; i++){
         recent_losses.push(metrics_data[0][0]/n_delta);

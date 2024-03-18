@@ -56,6 +56,7 @@
 #include "../usecases/Cifar.hpp"
 #include "../usecases/Demo.hpp"
 #include "../usecases/VGG16.hpp"
+#include "../usecases/RESNET50.hpp"
 
 
 
@@ -88,7 +89,25 @@ int main(int argc, char* argv[]) {
         } else if (s.compare("DEMO") == 0) {
 			dataflow = new concept_drift_cifar::Demo();
         } else if (s.compare("VGG16") == 0) {
-			dataflow = new vgg16::VGG16();
+			if (argc > 5){
+				int mini_batch_size = tp;
+				int epochs = atol(argv[3]);
+				int gpus_per_node = atol(argv[4]);
+				float loss_objective = atof(argv[5]);
+				dataflow = new vgg16::VGG16(mini_batch_size, epochs, gpus_per_node, loss_objective);
+			}else{
+				dataflow = new vgg16::VGG16();
+			}
+        }else if (s.compare("RESNET50") == 0) {
+			if (argc > 5){
+				int mini_batch_size = tp;
+				int epochs = atol(argv[3]);
+				int gpus_per_node = atol(argv[4]);
+				float loss_objective = atof(argv[5]);
+				dataflow = new resnet50::RESNET50(mini_batch_size, epochs, gpus_per_node, loss_objective);
+			}else{
+				dataflow = new resnet50::RESNET50();
+			}
         }
         
 	} else {

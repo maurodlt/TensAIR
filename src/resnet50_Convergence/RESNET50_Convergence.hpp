@@ -1,3 +1,4 @@
+
 #pragma once
 #include "../TensAIR/TensAIR.hpp"
 #include <vector>
@@ -18,11 +19,11 @@ struct Dataset {
     vector<pair<char*, char*>> imgs_labels;
 };
 
-class VGG16_Convergence : public TensAIR{
+class RESNET50_Convergence : public TensAIR{
 
     public:
 
-        VGG16_Convergence(const int tag, const int rank, const int worldSize, int windowSize, int broadcast_frequency, int epochs, int gpus_per_node, const char* saved_model_dir, const char* eval_data_file, const char* tags, int epoch_size = 1000, float convergence_factor = 1e-2, int epochs_for_convergence=2, TensAIR::Drift_Mode drift_detector_mode = TensAIR::Drift_Mode::AUTOMATIC, std::string print_to_folder = "", int print_frequency = 10, bool preallocate_tensors = false, int mini_batch_size = 128, MPI_Comm comm = MPI_COMM_WORLD);
+        RESNET50_Convergence(const int tag, const int rank, const int worldSize, int windowSize, int broadcast_frequency, int epochs, int gpus_per_node, const char* saved_model_dir, const char* eval_data_file, const char* tags, int epoch_size = 1000, float convergence_factor = 1e-2, int epochs_for_convergence=2, TensAIR::Drift_Mode drift_detector_mode = TensAIR::Drift_Mode::AUTOMATIC, std::string print_to_folder = "", int print_frequency = 10, bool preallocate_tensors = false, int mini_batch_size = 128, float loss_objective=0.05, MPI_Comm comm = MPI_COMM_WORLD);
 
         void streamProcess(int channel);
         Dataset readDataset();
@@ -44,7 +45,6 @@ class VGG16_Convergence : public TensAIR{
         char* path_value = std::getenv("TENSAIR_PATH");
         std::string train_data_file_str = std::string(path_value) + "/data/tiny_imagenet/tiny_imagenet_train.bin"; 
         const char* train_data_file = train_data_file_str.c_str();
-        std::string print_to_folder;
         std::vector<Mini_Batch_Generator> data;
         std::chrono::time_point<std::chrono::high_resolution_clock> lastUpdate;
         float currentError = 100000; //high value that will be overwritten
