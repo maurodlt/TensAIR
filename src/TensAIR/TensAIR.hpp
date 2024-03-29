@@ -278,7 +278,7 @@ class TensAIR : public BasicVertex<>{
             * size_tensor_0, size_tensor_1, ... , size_tensor_num_tensor              (int[num_tensor] size_tensor) [note: size in bytes]
             * tensor_0, tensor_1, ... , tensor_num_tensor                             (char[num_tensors][size_tensor[num_tensor]])
             */
-            Tensor_Data read_Tensors(message_ptr message);
+            Tensor_Data read_Tensors(message_ptr& message);
 
             //updates local metrics based on metrics from new gradients (METRICS MUST BE FLOAT)
             void update_metrics(int num_output_metrics, float** metrics_data, int n_delta); ///updates local metrics based on metrics from new gradients

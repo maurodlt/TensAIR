@@ -856,7 +856,7 @@ message_ptr TensAIR::construct_Message_Tensors(vector<TF_Tensor*> out_tensors, i
     //fill message gradients
     Serialization::wrap<unsigned long int>(this->models_version[this->rank], message.get()); //fill model_version
     Serialization::wrap<int>(mini_batch_size, message.get()); //fill mini_batch_size
-    Serialization::wrap<int>(n_delta, message.get()); //fill mini_batch_size
+    Serialization::wrap<int>(n_delta, message.get()); //fill n_delta
     Serialization::wrap<int>(num_output_metrics, message.get()); //fill num_output_metrics
     Serialization::wrap<int>((int)out_tensors.size()-num_output_metrics, message.get()); //fill num_gradients
     for(int i = 0; i < out_tensors.size(); i++){
@@ -1011,7 +1011,7 @@ vector<output_data> TensAIR::predict(message_ptr message){
  * size_tensor_0, size_tensor_1, ... , size_tensor_num_tensor              (int[num_tensor] size_tensor) [note: size in bytes]
  * tensor_0, tensor_1, ... , tensor_num_tensor                             (char[num_tensors][size_tensor[num_tensor]])
  */
-Tensor_Data TensAIR::read_Tensors(message_ptr message){
+Tensor_Data TensAIR::read_Tensors(message_ptr& message){
     Tensor_Data tens_data;
    
     int offset = 0;
@@ -1047,8 +1047,9 @@ Tensor_Data TensAIR::read_Tensors(message_ptr message){
     //read gradients
     tens_data.gradients_data = (void**) malloc(sizeof(void*)*tens_data.num_gradients); //allocate gradients list based on num_gradients
     for(int i = 0; i < tens_data.num_gradients; i++){
-        tens_data.gradients_data[i] = (void*)malloc(tens_data.size_gradients[i]); //allocate each gradinet based on size_gradients
-        memcpy(tens_data.gradients_data[i], message->buffer+ offset, tens_data.size_gradients[i]); //read gradient
+        //tens_data.gradients_data[i] = (void*)malloc(tens_data.size_gradients[i]); //allocate each gradinet based on size_gradients
+        //memcpy(tens_data.gradients_data[i], message->buffer+ offset, tens_data.size_gradients[i]); //read gradient
+        tens_data.gradients_data[i] = message->buffer+ offset;
         offset += tens_data.size_gradients[i];
     }
 
@@ -1099,7 +1100,7 @@ void TensAIR::update_metrics(int num_output_metrics, float** metrics_data, int n
 pair<bool,bool> TensAIR::apply_gradient(message_ptr message){
     bool converged = false;
     //deserialize message to Tensor_Data
-    Tensor_Data tens_data = read_Tensors(std::move(message));
+    Tensor_Data tens_data = read_Tensors(message);
     
     pair<bool,bool> afp = after_gradient_application(tens_data.metrics_data, num_output_metrics, tens_data.n_delta);
 
@@ -1157,8 +1158,8 @@ pair<bool,bool> TensAIR::apply_gradient(message_ptr message){
         free(tens_data.metrics_data[i]);
     free(tens_data.metrics_data);
     
-    for(int i = 0; i < tens_data.num_gradients; i++)
-        free(tens_data.gradients_data[i]);
+    //for(int i = 0; i < tens_data.num_gradients; i++)
+    //    free(tens_data.gradients_data[i]);
     free(tens_data.gradients_data);
     
     
@@ -1493,10 +1494,16 @@ pair<bool,bool> TensAIR::broadcast_gradient(){
         }
         this->delta_tensors.clear();
         this->delta_tensors.shrink_to_fit();
+        local_gradient_applied = 0;
+        clear_delta();
+        free(metrics_data);
         return afp;
     }
     if(this->delta_tensors.empty()){
         cout << "\n\nError, gradient being broadcasted is empty!\n\n";
+        local_gradient_applied = 0;
+        clear_delta();
+        free(metrics_data);
         return make_pair(false, true);
     }
     
@@ -1612,16 +1619,19 @@ int TensAIR::print_to_file_training(float** metrics_data, int n_metrics, int n_d
         return 1;
     }
 
-    file_to_print << "training, " << gradientsApplied << ",";
+    string to_print;
+    to_print =  "training, " + std::to_string(gradientsApplied) + ",";
+
+    //file_to_print << "training, " << gradientsApplied << ",";
     
     //add metrics to file in csv format
     for(int i = 0; i < n_metrics; i++){
-        if(i+1 == n_metrics){ // if last metric, end line
-            file_to_print << metrics_data[i][0]/n_delta << std::endl;
-        }else{
-            file_to_print << metrics_data[i][0]/n_delta << ",";
-        }
+        to_print += std::to_string(metrics_data[i][0]/n_delta) + ",";
     }
+
+    //std::osyncstream(file_to_print) << to_print << std::endl;
+    file_to_print << to_print << std::endl;
+
     return 0;
 }
 
