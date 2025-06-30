@@ -15,7 +15,7 @@ set(LIBTENSORFLOW_INCLUDE_DIR $ENV{LIBTENSORFLOW_INCLUDE_DIR})
 
 #find required packeges
 find_package(MPI 3 REQUIRED) #find MPI
-find_package(Python 3.9 COMPONENTS Interpreter Development REQUIRED) #find Python, set manually with the python path in "python3 -m pybind11 --includes"
+find_package(Python 3.8 COMPONENTS Interpreter Development REQUIRED) #find Python, set manually with the python path in "python3 -m pybind11 --includes"
 
 #Include external directories
 include_directories(${LIBTENSORFLOW_INCLUDE_DIR}) #tensorflow_c_api
@@ -147,6 +147,8 @@ set(LIST_FILES
         src/vgg16_Convergence/VGG16_Convergence.hpp
         src/resnet50_Convergence/RESNET50_Convergence.cpp
         src/resnet50_Convergence/RESNET50_Convergence.hpp
+        src/airplane/EventGenerator.hpp
+        src/airplane/EventGenerator.cpp
 )
 
 #Python Executable

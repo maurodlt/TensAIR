@@ -6,6 +6,7 @@
 
 #include "../word_embedding/EventGenerator.hpp"
 #include "../cifar/EventGenerator.hpp"
+#include "../airplane/EventGenerator.hpp"
 #include "TensAIR.hpp"
 #include "EventGenerator.hpp"
 #include "../dataflow/BasicDataflow.hpp"
@@ -85,6 +86,15 @@ PYBIND11_MODULE(tensair_py, m) {
             int rank; MPI_Comm_rank(*comm, &rank); // get rank from MPI_Comm
 
             return std::unique_ptr<concept_drift_cifar::EventGenerator>(new concept_drift_cifar::EventGenerator(tag, rank, world_size, mini_batch_size, msg_sec, epochs, train_data_file, window_size, drift_frequency, *comm));
+        }), py::arg("mpi_comm"), py::arg("tag"), py::arg("mini_batch_size"), py::arg("msg_sec") = 1000, py::arg("epochs")=INT_MAX, py::arg("train_data_file"), py::arg("window_size")=1000000, py::arg("drift_frequency")=10);
+
+    py::class_<airplane::EventGenerator, BasicVertex<>, Vertex>(m, "AIRPLANE_EventGenerator")
+        .def(py::init([](py::object py_comm, const int tag, int mini_batch_size, int msg_sec, int epochs, const char* train_data_file, int window_size, int drift_frequency) {
+            MPI_Comm* comm = get_mpi_comm(py_comm);
+            int world_size; MPI_Comm_size(*comm, &world_size); //get world_size from MPI_Comm
+            int rank; MPI_Comm_rank(*comm, &rank); // get rank from MPI_Comm
+
+            return std::unique_ptr<airplane::EventGenerator>(new airplane::EventGenerator(tag, rank, world_size, mini_batch_size, msg_sec, epochs, train_data_file, window_size, drift_frequency, *comm));
         }), py::arg("mpi_comm"), py::arg("tag"), py::arg("mini_batch_size"), py::arg("msg_sec") = 1000, py::arg("epochs")=INT_MAX, py::arg("train_data_file"), py::arg("window_size")=1000000, py::arg("drift_frequency")=10);
 
     
