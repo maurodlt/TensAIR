@@ -194,3 +194,5 @@ Cite us:
 ------------
 
 Mauro D. L. Tosi, Vinu E. Venugopal, and Martin Theobald. 2024. TensAIR: Real-Time Training of Neural Networks from Data-streams. In 2024 The 8th International Conference on Machine Learning and Soft Computing (ICMLSC 2024), January 26-8, 2024, Singapore, Singapore. ACM, New York, NY, USA 10 Pages. https://doi.org/10.1145/3647750.3647762
+
+Mauro D. L. Tosi, and Martin Theobald. Online Learning from data streams via decentralized and asynchronous SGD. Future Generation Computer Systems. 2025 Aug 5:108052. https://doi.org/10.1016/j.future.2025.108052
